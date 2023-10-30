@@ -1,13 +1,18 @@
 
-# About the project
-
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
-
 ```{r}
 # This is a so-called "R chunk" where you can write R code.
 
 date()
 
 ```
-The text continues here.
+
+# Chapter 1
+## Getting started
+
+Link to GitHub repository: <https://github.com/quadrangle1/IODS-project>/
+Link to course diary page: <https://quadrangle1.github.io/IODS-project/>
+
+In the exercise set 1 there are a lot of useful references, when it is needed to
+revise how to use some basic commands. Most of the content of exercise 1 was already at least somewhat familiar to me before this course.
+
 
