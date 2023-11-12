@@ -1,13 +1,100 @@
-# Insert chapter 2 title here
+# Assignment 2 - Regression and model validation
 
-*Describe the work you have done this week and summarize your learning.*
-
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+This week I have used a linear regression model to study the relationship of some independent variables to an outcome variable. I have learned about the workflow in fitting the model and assessing the quality of the model.
 
 ```{r}
 date()
 ```
+```{r, include = FALSE}
+knitr::opts_chunk$set(results = F)
+```
 
-Here we go again...
+
+The workflow begins by reading in the data prepared in the data wrangling part of the assignment. In essence, the studied dataset is metadata of the participants combined to data from a learning style questionnaire. The dataset consists of 166 rows and 7 variables (gender, age, attitude, exam points, and three collapsed learning style variables.)
+
+```{r}
+# Load needed packages
+suppressMessages(library(tidyverse))
+
+# Read in the data
+lrn14 <- read.csv("/Users/hchaltia/Open data science course/IODS-project/data/lrn14_subset_for_analysis.csv")
+
+#Explore the data
+dim(lrn14)
+str(lrn14)
+```
+```{r, include=FALSE}
+knitr::opts_chunk$set(results = T)
+```
+
+
+Next we will explore the data graphically and look at the summaries of the variables.
+
+```{r}
+# Load needed packages
+suppressMessages(library(ggplot2))
+suppressMessages(library(GGally))
+
+# Create a scatterplot matrix (exclude variable "gender")
+pairs(lrn14[-2])
+
+# Create a plot matrix to investigate the relationships of the variables
+p <- ggpairs(lrn14, mapping = aes(col = gender), lower = list(combo = wrap("facethist", bins = 20)))
+p
+
+```
+By eyeballing the scatterplot matrix, it looks like attitude and exam points are positively correlated. Age does not correlate well with anything.
+
+Checking the more advanced plot next, we can see that the correlation between attitude and exam points is not extremely strong, 0.437, but it is still the highest correlation value in any of the pairwise comparisons. The distributions of the variables seem to be fairly similar between the two studied genders, except the distributions of attitude and surface level learning compound variable, where the peaks of the distributions differ slightly.
+
+Overall, the study included almost twice the number of women compared to men.
+
+```{r}
+# Check summaries of the different variables
+lrn14 %>% summary()
+```
+
+From the summaries we can gather that the mean age of the participants is 25.51 years with a range of 17 to 55 years. Looking at the compound learning variables, the highest points on average are from deep learning, while surface level learning has average points of less than 2.
+
+Next, we will start creating a linear regression model with three explanatory variables, and exam points as the outcome variable. Let's choose attitude, surface level learning and strategic level learning as the explanatory variables, because the correlation with the outcome variable is the highest in those.
+
+```{r}
+# Fit the model
+fit1 <- lm(Points ~ Attitude + surf + stra, data = lrn14)
+
+# Show the summary of the model
+summary(fit1)
+```
+From the summary we see that out of these three covariates, only attitude is significant in predicting the exam points. Generally the model is not very good, explaining only about 19 percent of the observed variation in the outcome variable (adjusted R-squared). The significance of the coefficients is based on the t-value, which tells how far the estimated parameter is from a hypothesized 0. The F test determines whether at least one feature has a significant effect.
+
+According to the assignment instructions, let's fit the model using the significant explanatory variable.
+
+```{r}
+# Fit the model
+fit2 <- lm(Points ~ Attitude, data = lrn14)
+
+# Show the summary of the model
+summary(fit2)
+```
+With only attitude as the covariate, the t value based p-value is 4.12e-09, which is considered significant in this context. The adjusted R-squared tells that the model explains about 19 percent of the observed variation in the outcome variable. In essence, this model is as good as the previous model.
+
+
+Next we will produce diagnostic plots to assess model quality graphically.
+
+```{r}
+# Draw plots in 2x2 format
+par(mfrow = c(2,2))
+plot(fit2, which = c(1,2,5))
+```
+
+The linear model assumes a linear relationship between the studied variables, normal distribution of errors, independence of observations and homoscedasticity of errors.
+
+The residuals vs fitted plot reveals non-linear patterns in the data. When the red line shown in the plot is horizontal, the linearity can be assumed.
+
+The Q-Q plot studies the distribution of the residuals. If the plots are on a diagonal line, normality can be assumed.
+
+The residuals vs. leverage plot studies if there are any overly influential observations in the dataset. If the datapoints are under the dashed line titled "Cook's distance", those data points are considered as overly influential.
+
+According to these plots, this model seems to be adequate.
+
+
