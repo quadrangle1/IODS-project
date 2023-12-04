@@ -41,7 +41,7 @@ write_csv(human, file = "human.csv")
 # Read in the pre-prepared data
 human <- read.csv("human.csv")
 str(human) # 195 observations of 19 variables representing equality and quality of life -related indices and measures per country (life expectancy, HDI etc.)
-# The full list of variables is 
+# The full list of renamed variables is 
 #"country" = Country name
 
 # Health and knowledge
