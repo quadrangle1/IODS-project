@@ -1,0 +1,128 @@
+---
+title: "Chapter 5"
+author: "Hanna Haltia"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Dimensionality reduction
+
+Let's begin by loading in the data and exploring the dimensions.
+
+```{r}
+# Load packages
+library(tidyverse)
+
+# Load in data
+human <- read.csv("data/human.csv")
+str(human)
+
+# Set "country" as row names
+human_ <- column_to_rownames(human, "country")
+```
+
+Next let's explore the variables and their relations
+
+```{r}
+# Summaries of the variables
+summary(human_)
+
+# Plot matrix
+library(GGally)
+ggpairs(human_, mapping = aes(alpha=0.2), 
+              title="Human data variables",
+              lower = list(combo = wrap("facethist", bins = 20)))
+```
+
+All variables in the dataset are now numerical as the country information has been moved to rownames. The distributions and ranges of the variables are not equal. Some pretty strong inverse correlations are observed between maternal mortality and life expectancy at birth, and adolescent birth rate and life expectancy at birth for example.
+
+Next let's do PCA on the raw human data.
+
+```{r}
+# Perform principal component analysis (with the SVD method)
+pca_human <- prcomp(human_)
+
+# Draw a biplot of the principal component representation and the original variables
+biplot(pca_human, choices = 1:2)
+```
+
+
+All data is on the upper right corner and only one PC vector is visible. The variation in the data is explained by GNI according to this plot.
+
+Next let's standardize the data and perform the PCA again.
+
+```{r}
+# Standardize the variables
+human_std <- scale(human_)
+
+# Perform principal component analysis (with the SVD method)
+pca_human <- prcomp(human_std)
+
+# Draw a biplot of the principal component representation and the original variables
+biplot(pca_human, choices = 1:2)
+
+# Summary of the PCA
+summary(pca_human)
+
+```
+
+Now the data is better spread and not all in the same corner. Also more vectors are visible dividing explaining the variance across several variables. Overall, it looks like the data needs scaling to be properly analyzed with PCA.
+
+I think the results are different because when the data is not scaled, variables with bigger values get overestimated in their influence, since the variance in variables with smaller values is minor compared to the big values. GNI is a variable with huge numeric values compared to the others without scaling, so it becomes very influential in the first analysis.
+
+Based on the table, PC1 explains about 53% of the variation and is affected by maternal mortality, adolescent birth rate, GNI, life expectancy at birth, and expected years of schooling at least. PC2 explains about 16% of the variation and is affected by percentage of females in parliament and ratio of females to males in the labour force.
+
+Let's move into the tea dataset.
+
+```{r, message = FALSE}
+# Load in the data
+library(FactoMineR)
+library(tidyverse)
+tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/tea.csv", stringsAsFactors = TRUE)
+
+# Column names to keep in the dataset
+keepers <- c("Tea", "How", "where", "spirituality", "escape.exoticism")
+
+# Select the 'keep_columns' to create a new dataset
+tea_time <- select(tea, all_of(keepers))
+
+# look at the summaries and structure of the data
+summary(tea_time)
+str(tea_time)
+
+# visualize the dataset
+library(ggplot2)
+pivot_longer(tea_time, cols = everything()) %>% 
+  ggplot(aes(value)) + facet_wrap("name", scales = "free") + 
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+```
+
+From the chosen variables can be seen that most people have no escape exoticism related to tea, drink without adding anything with no spiritual meaning. The tea is most commonly specifically Earl Grey bought from a chain store.
+
+Next we will do MCA on the chosen variables of the tea dataset.
+
+```{r}
+# Multiple correspondence analysis
+library(FactoMineR)
+mca <- MCA(tea_time, graph = FALSE)
+
+# Summary of the model
+summary(mca)
+
+# Visualize MCA
+plot(mca, invisible=c("ind"), graph.type = "classic", habillage = "quali")
+```
+
+Based on the MCA factor map plot, spirituality, Earl Grey, escape-exoticism, and lemon group together. Tea shop, no escape-exoticism, and green tea also somewhat group together. Chain store tea buyers seem to drink tea without adding anything. Drinking tea "other" (not alone but also no lemon or milk) way is not associated to any of the categories studied.
+
+
+
+
